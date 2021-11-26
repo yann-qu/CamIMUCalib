@@ -47,11 +47,10 @@ int main(int argc, char** argv)
     OnInit();
     int start_index = 0;
 
-
     while (keepRunning){
         cam->read(src);
-        // TODO 读取IMU数据
 
+        // TODO 读取IMU数据
         cv::imshow("src", src);
         key = cv::waitKey(33);
         if(key == 'q'  || key == 27) keepRunning = false;
@@ -59,8 +58,8 @@ int main(int argc, char** argv)
             std::ostringstream buffer;
 
             buffer << "../data/img/" << start_index << ".jpg";
-            std::cout << buffer.str() << std::endl;
             cv::imwrite(buffer.str(), src);
+            std::cout << buffer.str() << " is saved" << std::endl;
             buffer.str("");
 
             // TODO 保存IMU数据到文件
@@ -72,13 +71,12 @@ int main(int argc, char** argv)
             } else {
                 IMU_file << start_index << "\n";
                 IMU_file.close();
+                std::cout << buffer.str() << " is saved" << std::endl;
             }
 
             start_index ++;
         }
     }
-
-
 
     OnClose();
     return 0;

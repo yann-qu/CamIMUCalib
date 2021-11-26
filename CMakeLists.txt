@@ -16,13 +16,20 @@ if (use_hk)
     link_libraries(-lMvCameraControl)
 endif ()
 
-file (GLOB_RECURSE calfiles
-    "${PROJECT_SOURCE_DIR}/src/Camera/*.cpp")
+file (GLOB_RECURSE camfiles
+    "${PROJECT_SOURCE_DIR}/src/Camera/hk_cam_wrapper.cpp"
+)
+file (GLOB_RECURSE serialfiles
+    "${PROJECT_SOURCE_DIR}/src/serial/*.cc"
+    "${PROJECT_SOURCE_DIR}/src/serial/**/*.cc"
+)
+
 
 add_executable(CamIMUCalib main.cpp)
-add_executable(get_calib_data get_calib_data.cpp ${calfiles})
+add_executable(get_calib_data get_calib_data.cpp ${camfiles})
 add_executable(Display Samples/Display.cpp)
 add_executable(SetParam Samples/SetParam.cpp)
+add_executable(serial_example Samples/serial_example.cc ${serialfiles})
 
 target_link_libraries(get_calib_data ${OpenCV_LIBS} -lglog -lpthread)
 target_link_libraries(Display X11)

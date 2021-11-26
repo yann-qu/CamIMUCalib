@@ -5,6 +5,8 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
+#include <fstream>
 #include <glog/logging.h>
 #include "opencv2/opencv.hpp"
 #include "Camera/hk_cam_wrapper.h"
@@ -43,15 +45,36 @@ static void OnClose() {
 int main(int argc, char** argv)
 {
     OnInit();
+    int start_index = 0;
+
+
     while (keepRunning){
         cam->read(src);
         // TODO 读取IMU数据
 
         cv::imshow("src", src);
-        key = cv::waitKey(10);
-        if(key == 27) keepRunning = false;
+        key = cv::waitKey(33);
+        if(key == 'q'  || key == 27) keepRunning = false;
         else if(key == 's') {
-            // TODO 按下s保存图像和IMU数据到文件
+            std::ostringstream buffer;
+
+            buffer << "../data/img/" << start_index << ".jpg";
+            std::cout << buffer.str() << std::endl;
+            cv::imwrite(buffer.str(), src);
+            buffer.str("");
+
+            // TODO 保存IMU数据到文件
+            buffer << "../data/IMU/" << start_index << ".txt";
+            std::ofstream IMU_file(buffer.str());
+            if( !IMU_file.is_open()) {
+                std::cerr << "Error opening file\n";
+                exit(-1);
+            } else {
+                IMU_file << start_index << "\n";
+                IMU_file.close();
+            }
+
+            start_index ++;
         }
     }
 

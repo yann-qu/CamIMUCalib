@@ -1,6 +1,6 @@
 /**
  * @brief 获取相机与IMU标定的数据，即图像数据和对应的IMU数据
- * @brief 相机为海康工业相机
+ * @brief 相机为海康工业相机 25mm
  */
 
 #include <iostream>
@@ -10,17 +10,21 @@
 #include <glog/logging.h>
 #include "opencv2/opencv.hpp"
 #include "Camera/hk_cam_wrapper.h"
+#include "com/rmserial.h"
 
-
+std::string uart_port = "/dev/ttyUSB0";
+RmSerial rmSerial;
 Camera* cam = nullptr;
 cv::Mat src;
 std::string camera_sn = "00F78889036";
 int key;
-int roi_offset_x = 0, roi_offset_y = 0, roi_width = 640, roi_height = 640;
-float ARMOR_CAMERA_EXPOSURE = 10000, ARMOR_CAMERA_GAIN = 0;
+// 1280 * 1024
+int roi_offset_x = 320, roi_offset_y = 192, roi_width = 640, roi_height = 640;
+float ARMOR_CAMERA_EXPOSURE = 10000, ARMOR_CAMERA_GAIN = 8;
 bool keepRunning = true;
 
 static void OnInit() {
+    rmSerial.init();
     src = cv::Mat(640, 640, CV_8UC3);
     cam = new HKCamera(camera_sn);
 
@@ -50,9 +54,13 @@ int main(int argc, char** argv)
     while (keepRunning){
         cam->read(src);
 
-        // TODO 读取IMU数据
         cv::imshow("src", src);
         key = cv::waitKey(33);
+
+        LOG(INFO) << "Recieve Mcu IMU Data:"<< "yaw:" << receive_config_data.yaw
+                  << "\tpitch:" << receive_config_data.pitch
+                  << "\troll:" << receive_config_data.roll << std::endl;
+
         if(key == 'q'  || key == 27) keepRunning = false;
         else if(key == 's') {
             std::ostringstream buffer;
@@ -62,14 +70,13 @@ int main(int argc, char** argv)
             std::cout << buffer.str() << " is saved" << std::endl;
             buffer.str("");
 
-            // TODO 保存IMU数据到文件
             buffer << "../data/IMU/" << start_index << ".txt";
             std::ofstream IMU_file(buffer.str());
             if( !IMU_file.is_open()) {
                 std::cerr << "Error opening file\n";
                 exit(-1);
             } else {
-                IMU_file << start_index << "\n";
+                IMU_file << receive_config_data.yaw << " " << receive_config_data.pitch << " " << receive_config_data.roll;
                 IMU_file.close();
                 std::cout << buffer.str() << " is saved" << std::endl;
             }

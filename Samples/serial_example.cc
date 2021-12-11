@@ -10,7 +10,7 @@
  *
  *  void loop() {
  *    if (Serial.available()) {
- *      Serial.write(Serial.read());
+ *      Serial.write(Serial.read());  // 把读取到的数据再发送回去
  *    }
  *  }
  * </pre>
@@ -111,17 +111,18 @@ int run(int argc, char **argv)
     int count = 0;
     string test_string;
     if (argc == 4) {
-        test_string = argv[3];   // 提取测试字符串
+        test_string = argv[3];    // 提取测试字符串
     } else {
-        test_string = "Testing.";
+        test_string = "Testing."; // 没有传入测试字符串时有默认值
     }
 
     // Test the timeout, there should be 1 second between prints
     cout << "Timeout == 1000ms, asking for 1 more byte than written." << endl;
     while (count < 10) {
-        size_t bytes_wrote = my_serial.write(test_string);
+        size_t bytes_wrote = my_serial.write(test_string);           // Write a string to the serial port.
 
-        string result = my_serial.read(test_string.length() + 1);
+        //? +1的作用？
+        string result = my_serial.read(test_string.length() + 1);// Read a given amount of bytes from the serial port into a given buffer.
 
         cout << "Iteration: " << count << ", Bytes written: ";
         cout << bytes_wrote << ", Bytes read: ";

@@ -7,6 +7,7 @@ set(use_hk true)
 find_package(OpenCV 4 REQUIRED)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
+
 link_directories(${PROJECT_SOURCE_DIR}/lib/Camera)
 
 # link_libraries用在add_executable之前，target_link_libraries用在add_executable之后
@@ -20,13 +21,15 @@ file (GLOB_RECURSE camfiles
     "${PROJECT_SOURCE_DIR}/src/Camera/hk_cam_wrapper.cpp"
 )
 file (GLOB_RECURSE serialfiles
-    "${PROJECT_SOURCE_DIR}/src/serial/*.cc"
-    "${PROJECT_SOURCE_DIR}/src/serial/**/*.cc"
+    "src/com/**/*.cc"
+    "src/com/**/*.c"
+    "src/com/**/*.cpp"
+    "src/com/*.cpp"
 )
 
 
 add_executable(CamIMUCalib main.cpp)
-add_executable(get_calib_data get_calib_data.cpp ${camfiles})
+add_executable(get_calib_data get_calib_data.cpp ${camfiles} ${serialfiles})
 add_executable(Display Samples/Display.cpp)
 add_executable(SetParam Samples/SetParam.cpp)
 add_executable(serial_example Samples/serial_example.cc ${serialfiles})

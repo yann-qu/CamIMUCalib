@@ -26,15 +26,19 @@ file (GLOB_RECURSE serialfiles
     "src/com/**/*.cpp"
     "src/com/*.cpp"
 )
+file (GLOB_RECURSE calibfiles
+    "src/CamIMUCalib/*.cpp"
+)
 
 
-add_executable(CamIMUCalib main.cpp)
+add_executable(CamIMUCalib CamIMUCalib.cpp ${calibfiles})
 add_executable(get_calib_data get_calib_data.cpp ${camfiles} ${serialfiles})
 add_executable(Display Samples/Display.cpp)
 add_executable(SetParam Samples/SetParam.cpp)
 add_executable(serial_example Samples/serial_example.cc ${serialfiles})
 
 target_link_libraries(get_calib_data ${OpenCV_LIBS} -lglog -lpthread)
+target_link_libraries(CamIMUCalib ${OpenCV_LIBS})
 target_link_libraries(Display X11)
 target_link_libraries(SetParam X11)
 

@@ -63,7 +63,7 @@ void Cal_R_T_target2cam(std::vector<cv::Mat>& R_target2cam, std::vector<cv::Mat>
         bool found = cv::findChessboardCorners(src, patternSize, corners);
         cv::drawChessboardCorners(src, patternSize, corners, found);
         cv::imshow("src with corners", src);
-        cv::waitKey(10);
+        cv::waitKey(0);
         cv::solvePnP(objectPoints, corners, cameraMatrix, distCoeffs, rvec, tvec);
         cv::Rodrigues(rvec, rotationMat);
         T_target2cam[i] = tvec;

@@ -14,7 +14,7 @@
 
 // 0: 采集Cam内参标定数据
 // 1: 采集CamIMU标定数据
-const int dataFlag = 1;
+const int dataFlag = 0;
 
 std::string uart_port = "/dev/ttyUSB0";
 RmSerial rmSerial;
@@ -22,20 +22,22 @@ Camera* cam = nullptr;
 cv::Mat src;
 std::string camera_sn = "00F78889036";
 int key;
-// 1280 * 1024
-int roi_offset_x = 320, roi_offset_y = 192, roi_width = 640, roi_height = 640;
+// 1280 * 1024 MV-CA013-21UC
+//int roi_offset_x = 320, roi_offset_y = 192, roi_width = 640, roi_height = 640;
+int roi_offset_x = 0, roi_offset_y = 0, roi_width = 1024, roi_height = 1024;
+//int roi_offset_x = 160, roi_offset_y = 96, roi_width = 960, roi_height = 832;
 float ARMOR_CAMERA_EXPOSURE = 10000, ARMOR_CAMERA_GAIN = 8;
 bool keepRunning = true;
 
 static void OnInit() {
     rmSerial.init();
-    src = cv::Mat(640, 640, CV_8UC3);
+    src = cv::Mat(1024, 1024, CV_8UC3);
     cam = new HKCamera(camera_sn);
 
     cam->init(roi_offset_x,
               roi_offset_y, roi_width,
               roi_height, ARMOR_CAMERA_EXPOSURE,
-              ARMOR_CAMERA_GAIN, false);
+              ARMOR_CAMERA_GAIN, true);
 
     if (!cam->init_is_successful()) {
         LOG(ERROR) << "Camera Init Failed!";

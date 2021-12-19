@@ -255,7 +255,8 @@ bool HKCamera::init_is_successful() { return init_success; }
 bool HKCamera::read(cv::Mat& src) {
     pimg_lock.lock();
     // p_img.copyTo(src);
-    cv::swap(p_img, src);
+    // cv::swap(p_img, src);
+    cv::swap(p_energy, src);
     pimg_lock.unlock();
     return true;
 }

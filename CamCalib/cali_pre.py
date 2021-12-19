@@ -49,7 +49,7 @@ def calibrate_single(imgNums, CheckerboardSize, Nx_cor, Ny_cor, saveFile=False, 
                 cv2.imwrite('CamCalib/imgWithCorners/' + str(count) + '.jpg', frame)
             print('NO.' + str(count))
             cv2.imshow('frame',frame)
-            cv2.waitKey(500)
+            cv2.waitKey(0)
  
     global mtx, dist
  
@@ -89,4 +89,4 @@ def calibrate_single(imgNums, CheckerboardSize, Nx_cor, Ny_cor, saveFile=False, 
     return mtx, dist, K, D
 
 if __name__ == "__main__":
-    mtx, dist, K,D = calibrate_single(20,25,11,8,True)
+    mtx, dist, K,D = calibrate_single(27,25,11,8,True)

@@ -12,6 +12,10 @@
 #include "Camera/hk_cam_wrapper.h"
 #include "com/rmserial.h"
 
+// 0: 采集Cam内参标定数据
+// 1: 采集CamIMU标定数据
+const int dataFlag = 1;
+
 std::string uart_port = "/dev/ttyUSB0";
 RmSerial rmSerial;
 Camera* cam = nullptr;
@@ -57,32 +61,48 @@ int main(int argc, char** argv)
         cv::imshow("src", src);
         key = cv::waitKey(33);
 
-        LOG(INFO) << "Recieve Mcu IMU Data:"<< "yaw:" << receive_config_data.yaw
-                  << "\tpitch:" << receive_config_data.pitch
-                  << "\troll:" << receive_config_data.roll << std::endl;
+        if(dataFlag == 0){
+            if(key == 'q'  || key == 27) keepRunning = false;
+            else if(key == 's') {
+                std::ostringstream buffer;
 
-        if(key == 'q'  || key == 27) keepRunning = false;
-        else if(key == 's') {
-            std::ostringstream buffer;
-
-            buffer << "../data/img/" << start_index << ".jpg";
-            cv::imwrite(buffer.str(), src);
-            std::cout << buffer.str() << " is saved" << std::endl;
-            buffer.str("");
-
-            buffer << "../data/IMU/" << start_index << ".txt";
-            std::ofstream IMU_file(buffer.str());
-            if( !IMU_file.is_open()) {
-                std::cerr << "Error opening file\n";
-                exit(-1);
-            } else {
-                IMU_file << receive_config_data.yaw << " " << receive_config_data.pitch << " " << receive_config_data.roll;
-                IMU_file.close();
+                buffer << "../CamCalib/img/" << start_index << ".jpg";
+                cv::imwrite(buffer.str(), src);
                 std::cout << buffer.str() << " is saved" << std::endl;
-            }
+                buffer.str("");
 
-            start_index ++;
+                start_index ++;
+            }
         }
+        else if(dataFlag == 1){
+            LOG(INFO) << "Recieve Mcu IMU Data:"<< "yaw:" << receive_config_data.yaw
+                      << "\tpitch:" << receive_config_data.pitch
+                      << "\troll:" << receive_config_data.roll << std::endl;
+
+            if(key == 'q'  || key == 27) keepRunning = false;
+            else if(key == 's') {
+                std::ostringstream buffer;
+
+                buffer << "../data/img/" << start_index << ".jpg";
+                cv::imwrite(buffer.str(), src);
+                std::cout << buffer.str() << " is saved" << std::endl;
+                buffer.str("");
+
+                buffer << "../data/IMU/" << start_index << ".txt";
+                std::ofstream IMU_file(buffer.str());
+                if( !IMU_file.is_open()) {
+                    std::cerr << "Error opening file\n";
+                    exit(-1);
+                } else {
+                    IMU_file << receive_config_data.yaw << " " << receive_config_data.pitch << " " << receive_config_data.roll;
+                    IMU_file.close();
+                    std::cout << buffer.str() << " is saved" << std::endl;
+                }
+
+                start_index ++;
+            }
+        }
+
     }
 
     OnClose();

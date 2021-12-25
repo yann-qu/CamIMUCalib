@@ -60,7 +60,7 @@ void Cal_R_T_target2cam(std::vector<cv::Mat>& R_target2cam, std::vector<cv::Mat>
         }
         cv::Mat src = cv::imread("../data/img/" + std::to_string(i) + ".jpg", cv::IMREAD_COLOR);
         cv::Mat corners;
-        bool found = cv::findChessboardCorners(src, patternSize, corners);
+        bool found = cv::findChessboardCornersSB(src, patternSize, corners);
         cv::drawChessboardCorners(src, patternSize, corners, found);
         cv::imshow("src with corners", src);
         cv::waitKey(0);

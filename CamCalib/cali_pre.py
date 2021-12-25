@@ -34,7 +34,7 @@ def calibrate_single(imgNums, CheckerboardSize, Nx_cor, Ny_cor, saveFile=False, 
         cv2.imshow('frame', frame)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         # 寻找棋盘格模板的角点
-        ok, corners = cv2.findChessboardCorners(gray, (Nx_cor, Ny_cor), flags)
+        ok, corners = cv2.findChessboardCornersSB(gray, (Nx_cor, Ny_cor), flags)
         if count >= imgNums:
             break
         if ok:  # 如果找到，添加目标点，图像点

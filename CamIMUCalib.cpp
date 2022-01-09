@@ -56,7 +56,7 @@
 #include "CamIMUCalib/CamIMUCalibFun.h"
 
 // 数据总数
-const int dataNum = 41;
+const int dataNum = 30;
 
 // 标定板内角点数目
 cv::Size patternSize(11, 8);
@@ -69,6 +69,7 @@ std::vector<cv::Mat> R_target2cam(dataNum);
 std::vector<cv::Mat> T_target2cam(dataNum);
 std::vector<cv::Mat> R_gripper2base(dataNum);
 std::vector<cv::Mat> T_gripper2base(dataNum);
+std::vector<cv::Mat> target_coordinates(dataNum);
 cv::Mat R_cam2gripper, T_cam2gripper;
 
 // 相机内参
@@ -80,11 +81,11 @@ cv::Mat R_cam2gripper, T_cam2gripper;
 //                     -0.2221014240737975, 0.604040838942106, 0.0017281277134342178, -0.001742049510186971, -2.872820940900385);
 
 cv::Mat cameraMatrix = (cv::Mat_<double>(3, 3)<<
-        1273.4449416443097, 0, 610.6257679270234,
-        0, 1273.881260223965, 546.7731213143381,
+        1268.3040827996454, 0, 601.8145004426672,
+        0, 1269.2268578180526, 535.9630695561534,
         0, 0, 1);
 cv::Mat distCoeffs = (cv::Mat_<double>(1, 5) <<
-        -0.22756425292579524, 0.20662999698552076, 4.219254721360161e-05, -0.0001130336039623469, -0.08638903101174845);
+        -0.21106997578275735, 0.13859402905136292, 0.0003679970268264421, -4.893985285328057e-05, 0.05692273770517827);
 
 int main(int argc, char** argv)
 {
@@ -105,6 +106,21 @@ int main(int argc, char** argv)
     std::cout << "------------" << std::endl;
     std::cout << R_cam2gripper << std::endl;
     std::cout << T_cam2gripper << std::endl;
+
+    coordinate_inspection(R_target2cam, T_target2cam, R_cam2gripper, T_cam2gripper, R_gripper2base, T_gripper2base, target_coordinates);
+
+    std::vector<double> n(dataNum), x(n.size()), y(n.size()), z(n.size());
+    for(int i = 0; i < dataNum; i++) {
+        n[i] = i;
+        x[i] = target_coordinates[i].at<double>(0);
+        y[i] = target_coordinates[i].at<double>(1);
+        z[i] = target_coordinates[i].at<double>(2);
+    }
+    auto axes = CvPlot::makePlotAxes();
+    axes.create<CvPlot::Series>(n, x, "-g");
+    axes.create<CvPlot::Series>(n, y, "-b");
+    axes.create<CvPlot::Series>(n, z, "-r");
+    CvPlot::show("mywindow", axes);
 
     return 0;
 }

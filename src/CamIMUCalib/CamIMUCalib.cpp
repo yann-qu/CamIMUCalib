@@ -31,12 +31,6 @@ void Cal_R_gripper2base(std::vector<cv::Mat>& R_gripper2base)
         theta_x = pitch * PI / 180.0;
         theta_y = -roll * PI / 180.0;
         theta_z = yaw * PI / 180.0;
-//        theta_x =  pitch* PI / 180.0;
-//        theta_y =  - yaw * PI / 180.0;
-//        theta_z =  - roll * PI / 180.0;
-//        theta_x = pitch * PI / 180.0;
-//        theta_y = yaw * PI / 180.0;
-//        theta_z = roll * PI / 180.0;
 
         cv::Mat R_x = (cv::Mat_<double>(3, 3) << 1, 0, 0, 0, cos(theta_x), -sin(theta_x), 0, sin(theta_x), cos(theta_x));
         cv::Mat R_y = (cv::Mat_<double>(3, 3) << cos(theta_y), 0, sin(theta_y), 0, 1, 0, -sin(theta_y), 0, cos(theta_y));
@@ -50,6 +44,8 @@ void Cal_R_gripper2base(std::vector<cv::Mat>& R_gripper2base)
 
 void Cal_R_T_target2cam(std::vector<cv::Mat>& R_target2cam, std::vector<cv::Mat>& T_target2cam)
 {
+    // TODO: 抛弃找不到的图
+    int foundNum = 0;
     for(int i = 0; i < dataNum; i++){
         cv::Mat rvec, tvec, rotationMat;
         std::vector<cv::Point3d> objectPoints;
@@ -60,6 +56,7 @@ void Cal_R_T_target2cam(std::vector<cv::Mat>& R_target2cam, std::vector<cv::Mat>
         }
         cv::Mat src = cv::imread("../data/img/" + std::to_string(i) + ".jpg", cv::IMREAD_COLOR);
         cv::Mat corners;
+//        bool found = cv::findChessboardCorners(src, patternSize, corners);
         bool found = cv::findChessboardCornersSB(src, patternSize, corners);
         cv::drawChessboardCorners(src, patternSize, corners, found);
         cv::imshow("src with corners", src);
@@ -71,4 +68,12 @@ void Cal_R_T_target2cam(std::vector<cv::Mat>& R_target2cam, std::vector<cv::Mat>
     }
 }
 
+
+void coordinate_inspection(const std::vector<cv::Mat>& R_target2cam, const std::vector<cv::Mat>& T_target2cam, const cv::Mat& R_cam2gripper, const cv::Mat& T_cam2gripper, const std::vector<cv::Mat>& R_gripper2base, const std::vector<cv::Mat>& T_gripper2base, std::vector<cv::Mat>& target_coordinates)
+{
+    cv::Mat P_TargetCoordinate = (cv::Mat_<double>(3, 1) << 0, 0, 0 );
+    for(int i = 0; i < target_coordinates.size(); i++) {
+        target_coordinates[i] = R_gripper2base[i] * (R_cam2gripper * (R_target2cam[i] * P_TargetCoordinate + T_target2cam[i]) + T_cam2gripper) + T_gripper2base[i];
+    }
+}
 

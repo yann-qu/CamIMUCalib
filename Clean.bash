@@ -10,7 +10,7 @@ if [ $Option = 1 ]; then
   # look for empty dir
   if [ "$(ls -A $DIR)" ]; then
       echo "$DIR is not Empty"
-      rm $DIR/*
+      rm $DIR/
       echo "Clean success"
   else
       echo "$DIR is Empty"

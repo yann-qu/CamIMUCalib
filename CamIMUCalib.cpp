@@ -56,7 +56,7 @@
 #include "CamIMUCalib/CamIMUCalibFun.h"
 
 // 数据总数
-const int dataNum = 30;
+const int dataNum = 253;
 
 // 标定板内角点数目
 cv::Size patternSize(11, 8);
@@ -64,13 +64,7 @@ cv::Size patternSize(11, 8);
 // 标定板棋盘格宽度
 const int chessWidth = 25;
 
-// 各个坐标系间的旋转矩阵和平移矩阵
-std::vector<cv::Mat> R_target2cam(dataNum);
-std::vector<cv::Mat> T_target2cam(dataNum);
-std::vector<cv::Mat> R_gripper2base(dataNum);
-std::vector<cv::Mat> T_gripper2base(dataNum);
-std::vector<cv::Mat> target_coordinates(dataNum);
-cv::Mat R_cam2gripper, T_cam2gripper;
+
 
 // 相机内参
 //cv::Mat cameraMatrix = (cv::Mat_<double>(3, 3)<<
@@ -81,36 +75,42 @@ cv::Mat R_cam2gripper, T_cam2gripper;
 //                     -0.2221014240737975, 0.604040838942106, 0.0017281277134342178, -0.001742049510186971, -2.872820940900385);
 
 cv::Mat cameraMatrix = (cv::Mat_<double>(3, 3)<<
-        1268.3040827996454, 0, 601.8145004426672,
-        0, 1269.2268578180526, 535.9630695561534,
+        1269.371964387117, 0, 596.1456902000988,
+        0, 1270.5814477862625, 537.3896063803448,
         0, 0, 1);
 cv::Mat distCoeffs = (cv::Mat_<double>(1, 5) <<
-        -0.21106997578275735, 0.13859402905136292, 0.0003679970268264421, -4.893985285328057e-05, 0.05692273770517827);
+        -0.2101441928429029, 0.08653200231874528, 0.0019259494346068116, -0.0009253675727106534, 0.2775319558729145);
 
 int main(int argc, char** argv)
 {
-    int displayIdx = 10;
+    std::vector<TransformationMatrices> T_vec(dataNum);
 
-    Cal_T_gripper2base(T_gripper2base);
-    std::cout << T_gripper2base[displayIdx] << std::endl;
+    // 各个坐标系间的旋转矩阵和平移矩阵
+    std::vector<cv::Mat> R_target2cam;
+    std::vector<cv::Mat> T_target2cam;
+    std::vector<cv::Mat> R_gripper2base;
+    std::vector<cv::Mat> T_gripper2base;
+    std::vector<cv::Mat> target_coordinates;
+    cv::Mat R_cam2gripper, T_cam2gripper;
 
-    Cal_R_gripper2base(R_gripper2base);
-    std::cout << R_gripper2base[displayIdx] << std::endl;
-
-    Cal_R_T_target2cam(R_target2cam, T_target2cam);
-    std::cout << T_target2cam[displayIdx] << std::endl;
-    std::cout << R_target2cam[displayIdx] << std::endl;
+    Cal_T_gripper2base(T_vec);
+    Cal_R_gripper2base(T_vec);
+    Cal_R_T_target2cam(T_vec);
+    extract_valid_data(T_vec, R_target2cam, T_target2cam,R_gripper2base, T_gripper2base);
 
     cv::calibrateHandEye(R_gripper2base, T_gripper2base, R_target2cam, T_target2cam, R_cam2gripper, T_cam2gripper);
 
+    int displayIdx = 10, valid_num;
+
+    std::cout << R_gripper2base[displayIdx] << "\n" << T_gripper2base[displayIdx] << "\n" << R_target2cam[displayIdx] << "\n" << T_target2cam[displayIdx] << std::endl;
+
     std::cout << "------------" << std::endl;
-    std::cout << R_cam2gripper << std::endl;
-    std::cout << T_cam2gripper << std::endl;
+    std::cout << R_cam2gripper << "\n" << T_cam2gripper << std::endl;
 
     coordinate_inspection(R_target2cam, T_target2cam, R_cam2gripper, T_cam2gripper, R_gripper2base, T_gripper2base, target_coordinates);
 
-    std::vector<double> n(dataNum), x(n.size()), y(n.size()), z(n.size());
-    for(int i = 0; i < dataNum; i++) {
+    std::vector<double> n(R_target2cam.size()), x(n.size()), y(n.size()), z(n.size());
+    for(int i = 0; i < n.size(); i++) {
         n[i] = i;
         x[i] = target_coordinates[i].at<double>(0);
         y[i] = target_coordinates[i].at<double>(1);

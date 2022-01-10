@@ -89,4 +89,4 @@ def calibrate_single(imgNums, CheckerboardSize, Nx_cor, Ny_cor, saveFile=False, 
     return mtx, dist, K, D
 
 if __name__ == "__main__":
-    mtx, dist, K,D = calibrate_single(20,25,11,8,True)
+    mtx, dist, K,D = calibrate_single(37,25,11,8,True)

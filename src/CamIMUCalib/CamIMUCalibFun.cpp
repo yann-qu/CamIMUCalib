@@ -1,14 +1,14 @@
 
 #include "CamIMUCalib/CamIMUCalibFun.h"
 
-void Cal_T_gripper2base(std::vector<cv::Mat>& T_gripper2base)
+void Cal_T_gripper2base(std::vector<TransformationMatrices>& T_vec)
 {
-    for(auto &i : T_gripper2base){
-        i = (cv::Mat_<double>(3,1) << 0, 0, 0);
+    for(auto &i : T_vec){
+        i.set_T_gripper2base((cv::Mat_<double>(3,1) << 0, 0, 0));
     }
 }
 
-void Cal_R_gripper2base(std::vector<cv::Mat>& R_gripper2base)
+void Cal_R_gripper2base(std::vector<TransformationMatrices>& T_vec)
 {
     /**
      * pitch - theta_x
@@ -16,7 +16,7 @@ void Cal_R_gripper2base(std::vector<cv::Mat>& R_gripper2base)
      * row - theta_y
      */
     double yaw, pitch, roll, theta_x, theta_y, theta_z;
-    for(int i = 0; i < R_gripper2base.size(); i++){
+    for(int i = 0; i < T_vec.size(); i++){
         std::ifstream inputFile("../data/IMU/"+std::to_string(i)+".txt", std::ifstream::in);
         std::string line, word;
         std::getline(inputFile, line);
@@ -37,16 +37,14 @@ void Cal_R_gripper2base(std::vector<cv::Mat>& R_gripper2base)
         cv::Mat R_z = (cv::Mat_<double>(3, 3) << cos(theta_z), -sin(theta_z), 0, sin(theta_z), cos(theta_z), 0, 0, 0, 1);
         cv::Mat R = R_z * R_y * R_x;
 //        cv::invert(R, R_gripper2base[i]);
-        R_gripper2base[i] = R;
+        T_vec[i].set_R_gripper2base(R);
     }
 }
 
 
-void Cal_R_T_target2cam(std::vector<cv::Mat>& R_target2cam, std::vector<cv::Mat>& T_target2cam)
+void Cal_R_T_target2cam(std::vector<TransformationMatrices>& T_vec)
 {
-    // TODO: 抛弃找不到的图
-    int foundNum = 0;
-    for(int i = 0; i < dataNum; i++){
+    for(int i = 0; i < T_vec.size(); i++){
         cv::Mat rvec, tvec, rotationMat;
         std::vector<cv::Point3d> objectPoints;
         for(int row = 0; row < patternSize.height; row++){
@@ -56,15 +54,16 @@ void Cal_R_T_target2cam(std::vector<cv::Mat>& R_target2cam, std::vector<cv::Mat>
         }
         cv::Mat src = cv::imread("../data/img/" + std::to_string(i) + ".jpg", cv::IMREAD_COLOR);
         cv::Mat corners;
-//        bool found = cv::findChessboardCorners(src, patternSize, corners);
         bool found = cv::findChessboardCornersSB(src, patternSize, corners);
+        T_vec[i].set_valid(found);
         cv::drawChessboardCorners(src, patternSize, corners, found);
         cv::imshow("src with corners", src);
-        cv::waitKey(0);
+        cv::waitKey(20);
+        if(!found) continue;
         cv::solvePnP(objectPoints, corners, cameraMatrix, distCoeffs, rvec, tvec);
         cv::Rodrigues(rvec, rotationMat);
-        T_target2cam[i] = tvec;
-        R_target2cam[i] = rotationMat;
+        T_vec[i].set_T_target2cam(tvec);
+        T_vec[i].set_R_target2cam(rotationMat);
     }
 }
 
@@ -72,8 +71,20 @@ void Cal_R_T_target2cam(std::vector<cv::Mat>& R_target2cam, std::vector<cv::Mat>
 void coordinate_inspection(const std::vector<cv::Mat>& R_target2cam, const std::vector<cv::Mat>& T_target2cam, const cv::Mat& R_cam2gripper, const cv::Mat& T_cam2gripper, const std::vector<cv::Mat>& R_gripper2base, const std::vector<cv::Mat>& T_gripper2base, std::vector<cv::Mat>& target_coordinates)
 {
     cv::Mat P_TargetCoordinate = (cv::Mat_<double>(3, 1) << 0, 0, 0 );
-    for(int i = 0; i < target_coordinates.size(); i++) {
-        target_coordinates[i] = R_gripper2base[i] * (R_cam2gripper * (R_target2cam[i] * P_TargetCoordinate + T_target2cam[i]) + T_cam2gripper) + T_gripper2base[i];
+    for(int i = 0; i < R_target2cam.size(); i++) {
+        target_coordinates.push_back(R_gripper2base[i] * (R_cam2gripper * (R_target2cam[i] * P_TargetCoordinate + T_target2cam[i]) + T_cam2gripper) + T_gripper2base[i]);
     }
 }
 
+
+void extract_valid_data(std::vector<TransformationMatrices>& T_vec, std::vector<cv::Mat>& R_target2cam, std::vector<cv::Mat>& T_target2cam, std::vector<cv::Mat>& R_gripper2base, std::vector<cv::Mat>& T_gripper2base)
+{
+    for(auto& i : T_vec){
+        if(i.is_valid()){
+            R_target2cam.push_back(i.get_R_target2cam());
+            T_target2cam.push_back(i.get_T_target2cam());
+            R_gripper2base.push_back(i.get_R_gripper2base());
+            T_gripper2base.push_back(i.get_T_gripper2base());
+        }
+    }
+}

@@ -5,7 +5,6 @@
 
 #include <iostream>
 #include <string>
-#include <sstream>
 #include <fstream>
 #include <glog/logging.h>
 #include "opencv2/opencv.hpp"
@@ -21,12 +20,11 @@ RmSerial rmSerial;
 Camera* cam = nullptr;
 cv::Mat src;
 std::string camera_sn = "00F78889001";
-int key;
 // 1280 * 1024 MV-CA013-21UC
 //int roi_offset_x = 320, roi_offset_y = 192, roi_width = 640, roi_height = 640;
 int roi_offset_x = 0, roi_offset_y = 0, roi_width = 1024, roi_height = 1024;
 //int roi_offset_x = 160, roi_offset_y = 96, roi_width = 960, roi_height = 832;
-float ARMOR_CAMERA_EXPOSURE = 10000, ARMOR_CAMERA_GAIN = 8;
+float ARMOR_CAMERA_EXPOSURE = 10000, ARMOR_CAMERA_GAIN = 6;
 bool keepRunning = true;
 
 static void OnInit() {
@@ -55,7 +53,7 @@ static void OnClose() {
 int main(int argc, char** argv)
 {
     OnInit();
-    int start_index = 0;
+    int start_index = 0, key;
 
     while (keepRunning) {
         cam->read(src);
